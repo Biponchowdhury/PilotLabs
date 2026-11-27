@@ -46,3 +46,6 @@ bun run dev
 - Arc Mainnet only (chain 5042). Native USDC (18 decimals) is the single balance; fees are paid in USDC with maxFeePerGas floored at 20 gwei.
 - History reads the EIP-7708 system emitter Transfer logs via getLogs (primary RPC allows about 9,000 blocks per call and about 3 calls per second). Pending and failed sends are tracked locally by hash and resolved from receipts.
 - No contracts deployed; no approvals requested.
+
+## PilotLabs.sol
+- Optional payment router, compiled and unit tested (49 tests), NOT deployed. ABI and bytecode in contracts/deployment/. See docs/pilotlabs-contract.md.
