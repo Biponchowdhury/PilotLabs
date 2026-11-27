@@ -10,7 +10,8 @@ body {
   margin: 0;
   font-family: 'DM Sans', sans-serif;
   min-height: 100dvh;
-  background: #F5F3EE;
-  color: #0E1B33;
+  background: #FFFFFF;
+  color: #0B1B3A;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
 }

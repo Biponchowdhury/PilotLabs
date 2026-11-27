@@ -1,5 +1,5 @@
 import type { Address, Hash } from 'viem'
-import { LOG_WINDOW_BLOCKS, RECENT_LOGS_WINDOW, SYSTEM_EMITTER, TRANSFER_EVENT, publicClient, recentLogsClient } from '@/lib/arc'
+import { LOG_WINDOW_BLOCKS, RECENT_LOGS_WINDOW, SYSTEM_EMITTER, TRANSFER_EVENT, publicClient, recentLogsClient, scanClient } from '@/lib/arc'
 
 export type TxStatus = 'pending' | 'confirmed' | 'failed'
 
@@ -23,14 +23,40 @@ export interface ScanResult {
   nextCursor: bigint
 }
 
-/** The primary endpoint sustains roughly three getLogs calls per second. Stay under that. */
-const MS_PER_CALL = 320
+/**
+ * The primary endpoint allows a short burst and then a much lower sustained rate, so calls are spaced out and
+ * the spacing widens every time the endpoint pushes back.
+ */
+const MIN_MS_PER_CALL = 500
+const MAX_MS_PER_CALL = 4_000
+let msPerCall = MIN_MS_PER_CALL
 let nextSlot = 0
 async function pace(calls: number): Promise<void> {
   const now = Date.now()
   const start = Math.max(now, nextSlot)
-  nextSlot = start + MS_PER_CALL * calls
+  nextSlot = start + msPerCall * calls
   if (start > now) await new Promise((resolve) => setTimeout(resolve, start - now))
+}
+
+function isRateLimit(err: unknown): boolean {
+  const text = err instanceof Error ? `${err.message} ${(err as { details?: string }).details ?? ''}`.toLowerCase() : ''
+  return text.includes('rate limit') || text.includes('exceeds defined limit') || text.includes('429')
+}
+
+/** Runs one paced primary-endpoint request, backing off and retrying when it is rate limited. */
+async function withBackoff<T>(calls: number, run: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    await pace(calls)
+    try {
+      const result = await run()
+      msPerCall = Math.max(MIN_MS_PER_CALL, Math.floor(msPerCall * 0.95))
+      return result
+    } catch (err) {
+      if (!isRateLimit(err) || attempt >= 6) throw err
+      msPerCall = Math.min(MAX_MS_PER_CALL, Math.ceil(msPerCall * 1.6))
+      nextSlot = Math.max(nextSlot, Date.now() + 1_500 * (attempt + 1))
+    }
+  }
 }
 
 /** Rows kept from one step. A busy wallet is read newest first, a page at a time. */
@@ -66,8 +92,7 @@ export async function scanStepBackward(address: Address, toBlock: bigint, recent
   }
   if (!logs) {
     from = toBlock - LOG_WINDOW_BLOCKS + 1n > 0n ? toBlock - LOG_WINDOW_BLOCKS + 1n : 0n
-    await pace(2)
-    logs = await scanWindow(publicClient, address, from, toBlock)
+    logs = await withBackoff(2, () => scanWindow(scanClient, address, from!, toBlock))
   }
   let drafts = toDrafts(address, logs)
   let nextCursor = from! - 1n
@@ -86,8 +111,7 @@ export async function scanRange(address: Address, fromBlock: bigint, toBlock: bi
   const logs: TransferLog[] = []
   for (let start = fromBlock; start <= toBlock; start += LOG_WINDOW_BLOCKS) {
     const end = start + LOG_WINDOW_BLOCKS - 1n < toBlock ? start + LOG_WINDOW_BLOCKS - 1n : toBlock
-    await pace(2)
-    logs.push(...(await scanWindow(publicClient, address, start, end)))
+    logs.push(...(await withBackoff(2, () => scanWindow(scanClient, address, start, end))))
   }
   return withTimestamps(toDrafts(address, logs))
 }
@@ -136,8 +160,7 @@ export async function blockTimestamps(blocks: bigint[]): Promise<Map<bigint, num
       continue
     }
     try {
-      await pace(1)
-      const block = await publicClient.getBlock({ blockNumber })
+      const block = await withBackoff(1, () => publicClient.getBlock({ blockNumber }))
       stampCache.set(blockNumber, Number(block.timestamp))
       out.set(blockNumber, Number(block.timestamp))
     } catch {

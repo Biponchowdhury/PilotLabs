@@ -12,7 +12,7 @@ export default function App() {
 
   return (
     <HistoryProvider>
-      <div className="min-h-dvh bg-canvas font-sans text-ink">
+      <div className="min-h-dvh bg-white font-sans text-ink">
         <Header tab={tab} onTab={setTab} />
         <main className="mx-auto max-w-2xl space-y-4 px-4 pb-24 pt-5">
           <NetworkGuard />

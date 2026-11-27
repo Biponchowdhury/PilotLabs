@@ -34,7 +34,16 @@ export const MIN_MAX_FEE_PER_GAS = 20_000_000_000n
 /** The primary endpoint rejects getLogs ranges of roughly 10,000 blocks or more. */
 export const LOG_WINDOW_BLOCKS = 9_000n
 
-/** Batched JSON-RPC client used for history and receipts. */
+/**
+ * Client used only for the history log scan. No batching and no automatic retries: the scanner paces its own
+ * calls and backs off when the endpoint reports a rate limit, so a retry storm cannot starve wallet reads.
+ */
+export const scanClient = createPublicClient({
+  chain: arcMainnet,
+  transport: http(ARC_RPC_URL, { retryCount: 0, timeout: 20_000 }),
+})
+
+/** Batched JSON-RPC client used for receipts, block timestamps and fee data. */
 export const publicClient = createPublicClient({
   chain: arcMainnet,
   transport: http(ARC_RPC_URL, { batch: { batchSize: 40, wait: 25 }, retryCount: 4, retryDelay: 400, timeout: 20_000 }),

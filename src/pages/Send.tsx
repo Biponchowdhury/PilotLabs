@@ -167,16 +167,16 @@ export function Send() {
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-semibold tracking-tight">Send</h1>
 
-      <div className="space-y-5 rounded-3xl bg-white p-5 ring-1 ring-ink/5">
-        <div className="flex items-center justify-between rounded-2xl bg-canvas px-4 py-3 text-sm">
-          <span className="text-ink/60">Available balance</span>
+      <div className="space-y-5 rounded-3xl bg-white p-5 ring-1 ring-slate-300">
+        <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm">
+          <span className="text-slate-600">Available balance</span>
           <span className="font-display font-semibold tabular-nums">
             {balanceRaw !== undefined ? `${formatNative(balanceRaw)} USDC` : balanceLoading ? '...' : '--'}
           </span>
         </div>
 
         <div>
-          <label htmlFor="recipient" className="mb-1.5 block text-sm font-medium">
+          <label htmlFor="recipient" className="mb-1.5 block text-sm font-semibold text-slate-900">
             Recipient address
           </label>
           <input
@@ -189,9 +189,9 @@ export function Send() {
             autoCapitalize="off"
             spellCheck={false}
             aria-invalid={Boolean(recipientError)}
-            className="min-h-12 w-full rounded-2xl border border-ink/10 bg-white px-4 font-mono text-sm outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/15 disabled:bg-canvas"
+            className="min-h-12 w-full rounded-2xl border border-slate-400 bg-white px-4 font-mono text-sm text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/25 disabled:bg-slate-100 disabled:text-slate-700"
           />
-          {recipientError && <p className="mt-1.5 text-sm text-red-700">{recipientError}</p>}
+          {recipientError && <p className="mt-1.5 text-sm font-medium text-red-700">{recipientError}</p>}
           {recipient && recipientIsContract && (
             <p className="mt-1.5 flex items-start gap-1.5 text-sm text-amber-800">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -202,14 +202,14 @@ export function Send() {
 
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <label htmlFor="amount" className="text-sm font-medium">
+            <label htmlFor="amount" className="text-sm font-semibold text-slate-900">
               Amount (USDC)
             </label>
             <button
               type="button"
               onClick={handleMax}
               disabled={reviewing || balanceRaw === undefined}
-              className="min-h-8 px-1 text-sm font-medium text-navy hover:underline disabled:opacity-50"
+              className="min-h-8 px-1 text-sm font-semibold text-blue-700 hover:underline disabled:text-slate-500"
             >
               Max
             </button>
@@ -223,13 +223,13 @@ export function Send() {
             placeholder="0.00"
             autoComplete="off"
             aria-invalid={Boolean(amountError)}
-            className="min-h-14 w-full rounded-2xl border border-ink/10 bg-white px-4 font-display text-2xl font-semibold tabular-nums outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/15 disabled:bg-canvas"
+            className="min-h-14 w-full rounded-2xl border border-slate-400 bg-white px-4 font-display text-2xl font-semibold tabular-nums text-slate-900 placeholder:text-slate-500 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/25 disabled:bg-slate-100 disabled:text-slate-700"
           />
           {amountError && <p className="mt-1.5 text-sm text-red-700">{amountError}</p>}
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span className="text-ink/60">Estimated network fee</span>
+          <span className="text-slate-600">Estimated network fee</span>
           <span className="font-medium tabular-nums">
             {fee ? `${formatFee(fee.estimatedFee)} USDC` : quote.isError ? 'Unavailable' : '...'}
           </span>
@@ -242,7 +242,7 @@ export function Send() {
       </div>
 
       {reviewing && frozen && recipient && amount.raw !== undefined && (
-        <div className="space-y-4 rounded-3xl bg-white p-5 ring-1 ring-ink/5">
+        <div className="space-y-4 rounded-3xl bg-white p-5 ring-1 ring-slate-300">
           <h2 className="font-display text-lg font-semibold tracking-tight">Transaction summary</h2>
           <dl className="space-y-3 text-sm">
             <Row label="You send" value={`${formatNative(amount.raw)} USDC`} strong />
@@ -252,7 +252,7 @@ export function Send() {
             <Row label="Maximum fee" value={`${formatFee(frozen.maxFee)} USDC`} />
             <Row label="Maximum total" value={`${formatNative(amount.raw + frozen.maxFee)} USDC`} strong />
           </dl>
-          <p className="text-xs text-ink/50">
+          <p className="text-xs text-slate-600">
             Transfers on Arc Mainnet are irreversible. Check the address ({shortAddress(recipient)}) before confirming. Your wallet will ask you to approve.
           </p>
           {submitError && (
@@ -265,7 +265,7 @@ export function Send() {
               type="button"
               onClick={() => setPhase('form')}
               disabled={waiting}
-              className="min-h-12 rounded-full bg-mist font-medium text-ink transition hover:bg-mist/70 disabled:opacity-50"
+              className="min-h-12 rounded-full border border-slate-300 bg-slate-100 font-semibold text-slate-900 transition hover:bg-slate-200 disabled:opacity-50"
             >
               Edit
             </button>
@@ -273,7 +273,7 @@ export function Send() {
               type="button"
               onClick={() => void handleConfirm()}
               disabled={waiting}
-              className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-navy font-medium text-white transition hover:bg-ink disabled:opacity-70"
+              className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-blue-700 font-semibold text-white transition hover:bg-blue-800 disabled:bg-blue-500"
             >
               {waiting ? (
                 <>
@@ -294,7 +294,7 @@ export function Send() {
               type="button"
               onClick={handleReview}
               disabled={!canReview}
-              className="min-h-14 w-full rounded-full bg-navy font-medium text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-14 w-full rounded-full bg-blue-700 font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
             >
               Review transfer
             </button>
@@ -303,7 +303,7 @@ export function Send() {
               type="button"
               onClick={switchToArc}
               disabled={isSwitching}
-              className="min-h-14 w-full rounded-full bg-amber-900 font-medium text-white disabled:opacity-60"
+              className="min-h-14 w-full rounded-full bg-amber-900 font-semibold text-white disabled:opacity-60"
             >
               {isSwitching ? 'Check your wallet...' : 'Switch to Arc Mainnet'}
             </button>
@@ -317,7 +317,7 @@ export function Send() {
 function Row({ label, value, mono, strong }: { label: string; value: string; mono?: boolean; strong?: boolean }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="shrink-0 text-ink/60">{label}</dt>
+      <dt className="shrink-0 text-slate-600">{label}</dt>
       <dd className={`text-right tabular-nums ${mono ? 'break-all font-mono text-xs' : ''} ${strong ? 'font-semibold' : 'font-medium'}`}>{value}</dd>
     </div>
   )
