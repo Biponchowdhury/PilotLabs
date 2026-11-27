@@ -57,3 +57,16 @@ Arc Studio does not deploy to or sign for mainnet. Review the code and get an in
 5. Call `pay` from a wallet with a small amount first and confirm the recipient balance and the `Payment` log.
 
 Only after you have deployed and tested it yourself should you add the address to the app, for example as a `VITE_` environment variable.
+
+## Deploying with Remix
+
+Use `docs/remix/PilotLabs.flattened.sol`: it is `PilotLabs.sol` with the OpenZeppelin code inlined, so Remix needs no imports. Its runtime bytecode was checked to match the project's own build.
+
+1. In Remix, create a file named `PilotLabs.sol` and paste in the flattened source.
+2. Solidity Compiler tab: compiler `0.8.28`, EVM version `cancun`, enable optimization with `200` runs, then Compile.
+3. Add Arc Mainnet to your wallet if needed: chain ID `5042`, RPC `https://rpc.mainnet.arc.io`, currency symbol `USDC`, explorer `https://explorer.arc.io`. Fund the wallet with a little USDC for gas.
+4. Deploy tab: environment `Injected Provider` (your wallet). Confirm the network shows Custom (5042).
+5. Contract `PilotLabs`. In the constructor field enter `initialOwner`, an address you control (it is the only account that can pause and unpause). Click Deploy and confirm in your wallet.
+6. If the transaction never appears, edit the fee in the wallet so max fee per gas is at least 20 gwei (Arc drops lower fees).
+7. Copy the deployed address, check `owner` and `paused` in Remix, then verify the source on the explorer with the same compiler settings.
+8. Test with a small `pay` call: set Value to a tiny amount (unit Wei is 18-decimal USDC, so 1 USDC is 1000000000000000000 Wei), enter a recipient and a `bytes32` reference such as `0x0000000000000000000000000000000000000000000000000000000000000001`.
